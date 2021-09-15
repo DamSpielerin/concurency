@@ -10,6 +10,7 @@ package main
 
 import (
 	"fmt"
+	"sync"
 	"time"
 )
 
@@ -25,13 +26,19 @@ func producer(stream Stream) (tweets []*Tweet) {
 }
 
 func consumer(tweets []*Tweet) {
+	var wg sync.WaitGroup
 	for _, t := range tweets {
-		if t.IsTalkingAboutGo() {
-			fmt.Println(t.Username, "\ttweets about golang")
-		} else {
-			fmt.Println(t.Username, "\tdoes not tweet about golang")
-		}
+		wg.Add(1)
+		go func(t *Tweet) {
+			if t.IsTalkingAboutGo() {
+				fmt.Println(t.Username, "\ttweets about golang")
+			} else {
+				fmt.Println(t.Username, "\tdoes not tweet about golang")
+			}
+			wg.Done()
+		}(t)
 	}
+	wg.Wait()
 }
 
 func main() {
